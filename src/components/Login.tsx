@@ -2,7 +2,7 @@ import React from 'react'
 import { Button, Form, Grid, Header, Image, Segment } from 'semantic-ui-react'
 import Credentials, { computeToken } from '../ledger/Credentials';
 import Ledger from '../ledger/Ledger';
-import { Game } from '../daml/Game';
+import { Game, GameState } from '../daml/Game';
 
 type LoginProps = {
   onLogin: (ledger: Ledger) => void;
@@ -39,7 +39,7 @@ const Login: React.FC<LoginProps> = ({onLogin}) => {
       event.preventDefault();
       let credentials: Credentials = {party: username, token: password};
       const ledger = new Ledger(credentials);
-      const game: Game = {player: username, state:{xPlaysNext:true,board:[null,null,null,null,null,null,null,null,null], winningPlayer:null}};
+      const game: Game = {player : username, state : new GameState()};
       await ledger.create(Game, game);
       await handleLogin();
     } catch(error) {

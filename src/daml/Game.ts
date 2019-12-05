@@ -1,55 +1,53 @@
-import { Party, TemplateId } from "../ledger/Types";
+import { Party, TemplateId, Choice } from "../ledger/Types";
 
+// Choice 'Reset'
 class Reset {
-  static template = undefined as unknown as typeof Game;
-  static choiceName = 'Reset';
+  // Class variables
+  static template : typeof Game =
+    undefined as unknown as typeof Game;
+  static choiceName : string= "Reset";
 
-  static fromJSON (json : unknown) : unknown {
-    return json as Reset;
-  }
-
-  static toJSON (reset : Reset): unknown {
-    return reset;
-  }
+  // Class functions
+  static fromJSON (json : unknown) : Reset { return json as Reset; }
+  static toJSON (reset : Reset): unknown           { return reset; }
 }
 
+// Choice 'Move'
 class Move {
+  // Class variables
+  static template : typeof Game =
+    undefined as unknown as typeof Game;
+  static choiceName : string = "Move";
+
+  // Instance variables
   cell : number = 0;
 
-  static template = undefined as unknown as typeof Game;
-  static choiceName = 'Move';
-
-  static fromJSON (json : unknown) : unknown {
-    return json as Move;
-  }
-
-  static toJSON (move : Move): unknown {
-    return move;
-  }
+  // Class functions
+  static fromJSON (json : unknown) : Move { return json as Move; }
+  static toJSON (move : Move): unknown            { return move; }
 }
 
-export class State {
+export type OptString = (string | null)
+export class GameState {
   xPlaysNext : boolean = true;
-  board : (string | null)[] = [null, null, null,null, null, null,null, null, null]
-  winningPlayer : (string | null) = null;
+  board : OptString[] = new Array(9).fill(null);
+  winningPlayer : OptString = null;
 }
 
+// Template 'Game'
 export class Game {
+  // Instance members
   player: Party = '';
-  state: State = new State();
+  state : GameState = new GameState();
 
+  // Class members
   static templateId: TemplateId = {moduleName: "Game", entityName: "Game"};
+  static Move : Choice<Game, Move> = Move;
+  static Reset : Choice<Game, Reset> = Reset;
 
-  static fromJSON(json: unknown): Game {
-    return json as Game;
-  }
-
-  static toJSON(game: Game): unknown {
-    return game;
-  }
-
-  static Move = Move;
-  static Reset = Reset;
+  // Class functions
+  static fromJSON(json: unknown): Game            { return json as Game; }
+  static toJSON(game: Game): unknown                      { return game; }
 }
 
 Move.template = Game;

@@ -3,12 +3,16 @@ import { Image, Menu } from 'semantic-ui-react'
 import Ledger from '../ledger/Ledger';
 import GameController from './Game';
 
+////////////////////////////////////////////////////////////////////////////////
+// Main
+
 type MainProps = {
   ledger: Ledger;
   onLogout: () => void;
 }
+type MainFC = React.FC<MainProps>
 
-const Main: React.FC<MainProps> = ({ledger, onLogout}) => {
+const Main : MainFC = ({ledger, onLogout}) => {
   return (
     <>
       <Menu icon borderless >

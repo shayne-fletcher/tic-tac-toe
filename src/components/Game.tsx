@@ -1,8 +1,8 @@
 import React from 'react';
 import { Container, Grid } from 'semantic-ui-react';
 
+import { Game, GameState } from '../daml/Game';
 import Ledger from '../ledger/Ledger';
-import { Game } from '../daml/Game'; // The model.
 
 ////////////////////////////////////////////////////////////////////////////////
 // GameController
@@ -10,24 +10,36 @@ import { Game } from '../daml/Game'; // The model.
 type GameControllerProps = {
   ledger: Ledger;
 }
+type GameControllerFC = React.FC<GameControllerProps>;
 
-const GameController: React.FC<GameControllerProps> = ({ledger}) => {
-  const [myGame, setMyGame] = React.useState<Game>(new Game());
+const GameController : GameControllerFC = ({ledger}) => {
+  type State =
+    [ Game
+    , React.Dispatch<React.SetStateAction<Game>>
+    ];
+  const [game, setGame] : State = React.useState<Game>(new Game());
 
-  const loadMyGame = React.useCallback(async () => {
+  // Refresh state.
+  const loadGame : () => Promise<void> = React.useCallback(async () => {
     try {
-      const game = await ledger.pseudoFetchByKey(Game, {player: ledger.party()});
-      setMyGame(game.data);
-
+      setGame((await ledger.pseudoFetchByKey(Game, {player: ledger.party()})).data);
     } catch (error) {
       alert("Unknown error:\n" + error);
     }
   }, [ledger]);
 
-  const handleClick = async (i : number) : Promise<boolean> => {
+  // Poll for state updates.
+  React.useEffect(() => {
+    const interval = setInterval(loadGame, 1000);
+    return () => clearInterval(interval);
+  }, [loadGame]);
+
+
+  // Handle a click on cell 'i'.
+  const onClick = async (i : number) : Promise<boolean> => {
     try {
       await ledger.pseudoExerciseByKey(Game.Move, {player: ledger.party()}, {cell:i});
-      await Promise.all([loadMyGame()]);
+      await Promise.all([loadGame()]);
       return true;
     } catch (error) {
       alert("Unknown error:\n" + JSON.stringify(error));
@@ -35,10 +47,11 @@ const GameController: React.FC<GameControllerProps> = ({ledger}) => {
     }
   }
 
-  const handleReset = async () : Promise<boolean> => {
+  // Handle a click on the "start over" button.
+  const onReset = async () : Promise<boolean> => {
     try {
       await ledger.pseudoExerciseByKey(Game.Reset, {player: ledger.party()}, {});
-      await Promise.all([loadMyGame()]);
+      await Promise.all([loadGame()]);
       return true;
     } catch (error) {
       alert("Unknown error:\n" + JSON.stringify(error));
@@ -46,76 +59,73 @@ const GameController: React.FC<GameControllerProps> = ({ledger}) => {
     }
   }
 
-  React.useEffect(() => {
-    const interval = setInterval(loadMyGame, 1000);
-    return () => clearInterval(interval);
-  }, [loadMyGame]);
-
-  const props : GameViewProps = {
-    myGame,
-    onClick : handleClick,
-    onReset : handleReset,
-  };
-
-  return GameView(props);
+  return GameView({game, onClick, onReset});
 }
 
 ////////////////////////////////////////////////////////////////////////////////
-// GameView
+// Cell
 
-export type SquareProps = {
+type CellProps = {
     value : (string | null)
   , onClick : () => Promise<boolean>
 }
-const Square : React.FC<SquareProps> = ({value, onClick}) => {
+type CellFC = React.FC<CellProps>;
+
+const Cell : CellFC = ({value, onClick}) => {
     return (
-        <button className = "square" onClick ={onClick}>
+        <button className = "cell" onClick ={onClick}>
       {value}
     </button>
     );
 }
 
-export type BoardProps = {
+////////////////////////////////////////////////////////////////////////////////
+// Board
+
+type BoardProps = {
   cells : (string | null )[];
   onClick : (i : number) => Promise<boolean>;
 }
-const Board : React.FC<BoardProps> = ({cells, onClick}) => {
+type BoardFC = React.FC<BoardProps>;
+
+const Board : BoardFC = ({cells, onClick}) => {
     return (
       <div>
         <div className="board-row">
-        <Square value = {cells[0]} onClick={() => { return onClick(0); } } />
-        <Square value = {cells[1]} onClick={() => { return onClick(1); } } />
-        <Square value = {cells[2]} onClick={() => { return onClick(2); } } />
+        <Cell value = {cells[0]} onClick={() => { return onClick(0); } } />
+        <Cell value = {cells[1]} onClick={() => { return onClick(1); } } />
+        <Cell value = {cells[2]} onClick={() => { return onClick(2); } } />
         </div>
         <div className="board-row">
-        <Square value = {cells[3]} onClick={() => { return onClick(3); } } />
-        <Square value = {cells[4]} onClick={() => { return onClick(4); } } />
-        <Square value = {cells[5]} onClick={() => { return onClick(5); } } />
+        <Cell value = {cells[3]} onClick={() => { return onClick(3); } } />
+        <Cell value = {cells[4]} onClick={() => { return onClick(4); } } />
+        <Cell value = {cells[5]} onClick={() => { return onClick(5); } } />
         </div>
         <div className="board-row">
-        <Square value = {cells[6]} onClick={() => { return onClick(6); } } />
-        <Square value = {cells[7]} onClick={() => { return onClick(7); } } />
-        <Square value = {cells[8]} onClick={() => { return onClick(8); } } />
+        <Cell value = {cells[6]} onClick={() => { return onClick(6); } } />
+        <Cell value = {cells[7]} onClick={() => { return onClick(7); } } />
+        <Cell value = {cells[8]} onClick={() => { return onClick(8); } } />
         </div>
       </div>
     );
 }
 
-export type GameViewProps = {
-  myGame: Game;
+////////////////////////////////////////////////////////////////////////////////
+// GameView
+
+type GameViewProps = {
+  game : Game;
   onClick : (i : number) => Promise<boolean>;
   onReset : () => Promise<boolean>
 }
+type GameViewFC = React.FC<GameViewProps>;
 
-const GameView: React.FC<GameViewProps> = (props) => {
-  const onClick = props.onClick;
-  const onReset = props.onReset;
-  const state = props.myGame.state;
-  const {xPlaysNext, board, winningPlayer} = state;
+const GameView : GameViewFC = ({game, onClick, onReset}) => {
+  const {xPlaysNext, board, winningPlayer} : GameState = game.state;
 
   let status : string;
-  if (winningPlayer != null) {
-      status = 'すごい! ' + winningPlayer + ' wins the game!';
+  if (winningPlayer) { //!= null) {
+      status = "'" + winningPlayer + "' wins the game! すごい!";
     }
     else {
       status = 'Next player : ' + (xPlaysNext ? 'X' : 'O');
