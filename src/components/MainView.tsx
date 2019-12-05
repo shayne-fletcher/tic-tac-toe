@@ -1,6 +1,6 @@
 import React from 'react';
 import { Container, Grid, Header, Icon, Segment, Divider } from 'semantic-ui-react';
-import { User } from '../daml/User';
+import { Game } from '../daml/Game';
 import { Party } from '../ledger/Types';
 
 export type SquareProps = {
@@ -45,7 +45,7 @@ const Board : React.FC<BoardProps> = ({cells, onClick}) => {
  * React component for the view of the `MainScreen`.
  */
 export type Props = {
-  myUser: User;
+  myGame: Game;
   onClick : (i : number) => Promise<boolean>;
   onReset : () => Promise<boolean>
 }
@@ -53,7 +53,7 @@ export type Props = {
 const MainView: React.FC<Props> = (props) => {
   const onClick = props.onClick;
   const onReset = props.onReset;
-  const {player, state} = props.myUser;
+  const {player, state} = props.myGame;
   const {xPlaysNext, board, winningPlayer} = state;
 
   let status : string;

@@ -1,0 +1,77 @@
+daml 1.2
+module Game where
+
+import DA.List -- for ( !! )
+
+type Cell = Optional Text
+type Board = [Cell]  -- 9 cells (3 x 3 grid).
+data State =
+  State { xPlaysNext : Bool
+        , board : Board
+        , winningPlayer : Optional Text
+        } deriving (Eq, Show)
+
+template Game with
+    player: Party
+    state : State
+  where
+    signatory player
+
+    key player: Party
+    maintainer key
+
+    -- Start a new game.
+    choice Reset : ContractId Game
+      controller player
+      do
+        create $ mkGame player
+
+    -- Try to make a move.
+    nonconsuming choice Move : ContractId Game with
+        cell : Int
+     controller player
+     do
+       case move cell state of
+         None -> pure self
+         Some state -> do archive self; create Game with ..
+
+-- A fresh game.
+mkGame player = Game with player, state = emptyState
+  where emptyState : State
+        emptyState = State {xPlaysNext=True, board=replicate 9 None, winningPlayer=None}
+
+-- Make a move.
+move : Int -> State -> Optional State
+move i State{..}
+  | Some _ <- winningPlayer = None -- Game over.
+  | Some _ <- board !! i = None -- Square already occupied.
+  | otherwise =
+    let board' = take i board ++ [Some (marker xPlaysNext)] ++ drop (i + 1) board in
+    Some $ State { xPlaysNext=not xPlaysNext
+                 , board=board'
+                 , winningPlayer=winner board'}
+
+-- Next marker given state.
+marker : Bool -> Text
+marker True  = "X"; marker False = "O"
+
+-- Check for a winner.
+winner : Board -> Optional Text
+winner cells = foldl f None winningStates
+  where
+    f : Optional Text -> [Int] -> Optional Text
+    f winner@(Some _) _ = winner
+    f acc [a, b, c]
+      | (Some x, Some y, Some z) <- (cells !! a, cells !! b, cells !! c)
+      , x == y && y == z
+      = Some x
+    f _ _ = None
+
+    winningStates : [[Int]]
+    winningStates =
+      [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8]
+      , [0, 3, 6], [1, 4, 7], [2, 5, 8]
+      , [0, 4, 8]
+      , [6, 2, 2]
+      ]

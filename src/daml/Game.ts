@@ -1,17 +1,7 @@
 import { Party, TemplateId } from "../ledger/Types";
 
-class Delete {
-  static template = undefined as unknown as typeof User;
-
-  static choiceName = 'Delete';
-
-  static toJSON(delete_: Delete): unknown {
-    return delete_;
-  }
-}
-
 class Reset {
-  static template = undefined as unknown as typeof User;
+  static template = undefined as unknown as typeof Game;
   static choiceName = 'Reset';
 
   static fromJSON (json : unknown) : unknown {
@@ -26,7 +16,7 @@ class Reset {
 class Move {
   cell : number = 0;
 
-  static template = undefined as unknown as typeof User;
+  static template = undefined as unknown as typeof Game;
   static choiceName = 'Move';
 
   static fromJSON (json : unknown) : unknown {
@@ -44,25 +34,23 @@ export class State {
   winningPlayer : (string | null) = null;
 }
 
-export class User {
+export class Game {
   player: Party = '';
   state: State = new State();
 
-  static templateId: TemplateId = {moduleName: "User", entityName: "User"};
+  static templateId: TemplateId = {moduleName: "Game", entityName: "Game"};
 
-  static fromJSON(json: unknown): User {
-    return json as User;
+  static fromJSON(json: unknown): Game {
+    return json as Game;
   }
 
-  static toJSON(user: User): unknown {
-    return user;
+  static toJSON(game: Game): unknown {
+    return game;
   }
 
-  static Delete = Delete;
   static Move = Move;
   static Reset = Reset;
 }
 
-Move.template = User;
-Reset.template = User;
-Delete.template = User;
+Move.template = Game;
+Reset.template = Game;

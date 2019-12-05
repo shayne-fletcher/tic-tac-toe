@@ -2,7 +2,7 @@ import React from 'react'
 import { Button, Form, Grid, Header, Image, Segment } from 'semantic-ui-react'
 import Credentials, { computeToken } from '../ledger/Credentials';
 import Ledger from '../ledger/Ledger';
-import { User } from '../daml/User';
+import { Game } from '../daml/Game';
 
 type Props = {
   onLogin: (ledger: Ledger) => void;
@@ -26,8 +26,8 @@ const LoginScreen: React.FC<Props> = ({onLogin}) => {
       }
       let credentials: Credentials = {party: username, token: password};
       const ledger = new Ledger(credentials);
-      const user = await ledger.pseudoLookupByKey(User, {player: username});
-      if (user === undefined) {
+      const game = await ledger.pseudoLookupByKey(Game, {player: username});
+      if (game === undefined) {
         alert("You have not yet signed up.");
         return;
       }
@@ -42,8 +42,8 @@ const LoginScreen: React.FC<Props> = ({onLogin}) => {
       event.preventDefault();
       let credentials: Credentials = {party: username, token: password};
       const ledger = new Ledger(credentials);
-      const user: User = {player: username, state:{xPlaysNext:true,board:[null,null,null,null,null,null,null,null,null], winningPlayer:null}};
-      await ledger.create(User, user);
+      const game: Game = {player: username, state:{xPlaysNext:true,board:[null,null,null,null,null,null,null,null,null], winningPlayer:null}};
+      await ledger.create(Game, game);
       await handleLogin();
     } catch(error) {
       if (error instanceof Ledger.Error) {

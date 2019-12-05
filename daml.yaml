@@ -1,5 +1,5 @@
 sdk-version: 0.13.38
-name: create-daml-app
+name: tic-tac-toe
 version: 0.1.0
 source: daml
 parties:

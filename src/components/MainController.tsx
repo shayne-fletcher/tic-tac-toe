@@ -2,7 +2,7 @@ import React from 'react';
 import MainView from './MainView';
 import Ledger from '../ledger/Ledger';
 import { Party } from '../ledger/Types';
-import { User } from '../daml/User';
+import { Game } from '../daml/Game';
 
 type Props = {
   ledger: Ledger;
@@ -12,12 +12,12 @@ type Props = {
  * React component to control the `MainView`.
  */
 const MainController: React.FC<Props> = ({ledger}) => {
-  const [myUser, setMyUser] = React.useState<User>(new User());
+  const [myGame, setMyGame] = React.useState<Game>(new Game());
 
-  const loadMyUser = React.useCallback(async () => {
+  const loadMyGame = React.useCallback(async () => {
     try {
-      const user = await ledger.pseudoFetchByKey(User, {player: ledger.party()});
-      setMyUser(user.data);
+      const game = await ledger.pseudoFetchByKey(Game, {player: ledger.party()});
+      setMyGame(game.data);
 
     } catch (error) {
       alert("Unknown error:\n" + error);
@@ -26,8 +26,8 @@ const MainController: React.FC<Props> = ({ledger}) => {
 
   const handleClick = async (i : number) : Promise<boolean> => {
     try {
-      await ledger.pseudoExerciseByKey(User.Move, {player: ledger.party()}, {cell:i});
-      await Promise.all([loadMyUser()]);
+      await ledger.pseudoExerciseByKey(Game.Move, {player: ledger.party()}, {cell:i});
+      await Promise.all([loadMyGame()]);
       return true;
     } catch (error) {
       alert("Unknown error:\n" + JSON.stringify(error));
@@ -37,7 +37,7 @@ const MainController: React.FC<Props> = ({ledger}) => {
 
   const handleReset = async () : Promise<boolean> => {
     try {
-      await ledger.pseudoExerciseByKey(User.Reset, {player: ledger.party()}, {});
+      await ledger.pseudoExerciseByKey(Game.Reset, {player: ledger.party()}, {});
       return true;
     } catch (error) {
       alert("Unknown error:\n" + JSON.stringify(error));
@@ -47,12 +47,12 @@ const MainController: React.FC<Props> = ({ledger}) => {
 
   // Run every second
   React.useEffect(() => {
-    const interval = setInterval(loadMyUser, 1000);
+    const interval = setInterval(loadMyGame, 1000);
     return () => clearInterval(interval);
-  }, [loadMyUser]);
+  }, [loadMyGame]);
 
   const props = {
-    myUser,
+    myGame,
     onClick : handleClick,
     onReset : handleReset,
   };
