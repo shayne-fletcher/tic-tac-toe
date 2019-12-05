@@ -36,20 +36,17 @@ template Game with
          Some state -> do archive self; create Game with ..
 
 -- A fresh game.
-mkGame player = Game with player, state = emptyState
-  where emptyState : State
-        emptyState = State {xPlaysNext=True, board=replicate 9 None, winningPlayer=None}
+mkGame player = Game with ..
+  where state = State True (replicate 9 None) None
 
 -- Make a move.
 move : Int -> State -> Optional State
 move i State{..}
   | Some _ <- winningPlayer = None -- Game over.
   | Some _ <- board !! i = None -- Square already occupied.
-  | otherwise =
-    let board' = take i board ++ [Some (marker xPlaysNext)] ++ drop (i + 1) board in
-    Some $ State { xPlaysNext=not xPlaysNext
-                 , board=board'
-                 , winningPlayer=winner board'}
+  | otherwise = do
+    let board' = take i board ++ [Some (marker xPlaysNext)] ++ drop (i + 1) board
+    Some $ State (not xPlaysNext) board' (winner board')
 
 -- Next marker given state.
 marker : Bool -> Text
