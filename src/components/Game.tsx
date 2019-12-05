@@ -1,7 +1,67 @@
 import React from 'react';
-import { Container, Grid, Header, Icon, Segment, Divider } from 'semantic-ui-react';
-import { Game } from '../daml/Game';
-import { Party } from '../ledger/Types';
+import { Container, Grid } from 'semantic-ui-react';
+
+import Ledger from '../ledger/Ledger';
+import { Game } from '../daml/Game'; // The model.
+
+////////////////////////////////////////////////////////////////////////////////
+// GameController
+
+type GameControllerProps = {
+  ledger: Ledger;
+}
+
+const GameController: React.FC<GameControllerProps> = ({ledger}) => {
+  const [myGame, setMyGame] = React.useState<Game>(new Game());
+
+  const loadMyGame = React.useCallback(async () => {
+    try {
+      const game = await ledger.pseudoFetchByKey(Game, {player: ledger.party()});
+      setMyGame(game.data);
+
+    } catch (error) {
+      alert("Unknown error:\n" + error);
+    }
+  }, [ledger]);
+
+  const handleClick = async (i : number) : Promise<boolean> => {
+    try {
+      await ledger.pseudoExerciseByKey(Game.Move, {player: ledger.party()}, {cell:i});
+      await Promise.all([loadMyGame()]);
+      return true;
+    } catch (error) {
+      alert("Unknown error:\n" + JSON.stringify(error));
+      return false;
+    }
+  }
+
+  const handleReset = async () : Promise<boolean> => {
+    try {
+      await ledger.pseudoExerciseByKey(Game.Reset, {player: ledger.party()}, {});
+      await Promise.all([loadMyGame()]);
+      return true;
+    } catch (error) {
+      alert("Unknown error:\n" + JSON.stringify(error));
+      return false;
+    }
+  }
+
+  React.useEffect(() => {
+    const interval = setInterval(loadMyGame, 1000);
+    return () => clearInterval(interval);
+  }, [loadMyGame]);
+
+  const props : GameViewProps = {
+    myGame,
+    onClick : handleClick,
+    onReset : handleReset,
+  };
+
+  return GameView(props);
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// GameView
 
 export type SquareProps = {
     value : (string | null)
@@ -41,24 +101,21 @@ const Board : React.FC<BoardProps> = ({cells, onClick}) => {
     );
 }
 
-/**
- * React component for the view of the `MainScreen`.
- */
-export type Props = {
+export type GameViewProps = {
   myGame: Game;
   onClick : (i : number) => Promise<boolean>;
   onReset : () => Promise<boolean>
 }
 
-const MainView: React.FC<Props> = (props) => {
+const GameView: React.FC<GameViewProps> = (props) => {
   const onClick = props.onClick;
   const onReset = props.onReset;
-  const {player, state} = props.myGame;
+  const state = props.myGame.state;
   const {xPlaysNext, board, winningPlayer} = state;
 
   let status : string;
   if (winningPlayer != null) {
-      status = winningPlayer + ' wins the game!';
+      status = 'すごい! ' + winningPlayer + ' wins the game!';
     }
     else {
       status = 'Next player : ' + (xPlaysNext ? 'X' : 'O');
@@ -95,4 +152,4 @@ const MainView: React.FC<Props> = (props) => {
   );
 }
 
-export default MainView;
+export default GameController;

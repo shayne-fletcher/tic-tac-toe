@@ -1,20 +1,17 @@
 import React from 'react'
 import { Image, Menu } from 'semantic-ui-react'
 import Ledger from '../ledger/Ledger';
-import MainController from './MainController';
+import GameController from './Game';
 
-type Props = {
+type MainProps = {
   ledger: Ledger;
   onLogout: () => void;
 }
 
-/**
- * React component for the main screen of the `App`.
- */
-const MainScreen: React.FC<Props> = ({ledger, onLogout}) => {
+const Main: React.FC<MainProps> = ({ledger, onLogout}) => {
   return (
     <>
-      <Menu icon borderless>
+      <Menu icon borderless >
         <Menu.Item>
           <Image
             as='a'
@@ -22,7 +19,7 @@ const MainScreen: React.FC<Props> = ({ledger, onLogout}) => {
             target='_blank'
             src='/daml.svg'
             alt='DAML Logo'
-            size='mini'
+            size='tiny'
           />
         </Menu.Item>
         <Menu.Menu position='right'>
@@ -38,9 +35,9 @@ const MainScreen: React.FC<Props> = ({ledger, onLogout}) => {
         </Menu.Menu>
       </Menu>
 
-      <MainController ledger={ledger}/>
+      <GameController ledger={ledger}/>
     </>
   );
 };
 
-export default MainScreen;
+export default Main;
