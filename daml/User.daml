@@ -1,0 +1,89 @@
+daml 1.2
+module User where
+
+import DA.List
+
+type Cell = Optional Text
+type Board = [Cell]  -- 9 cells (3 x 3 grid).
+data State =
+  State { xPlaysNext : Bool
+        , board : Board
+        , winningPlayer : Optional Text
+        } deriving (Eq, Show)
+
+template User with
+    player: Party
+    state  : State
+  where
+    signatory player
+
+    key player: Party
+    maintainer key
+
+    -- Start a new game.
+    choice Reset : ContractId User
+      controller player
+      do
+        create $ mkUser player
+
+    -- Try to make a move.
+    nonconsuming choice Move : ContractId User with
+        cell : Int
+     controller player
+     do
+       let tag = marker state
+       case move cell tag state.board of
+         None ->
+           pure self
+         Some board -> do
+           let xPlaysNext = not state.xPlaysNext
+           archive self
+           create User with player, state = State {winningPlayer = winner board, ..}
+
+    -- NOTE(MH):This is a workaround for issue
+    -- https://github.com/digital-asset/daml/issues/3219.
+    -- Our tests want to clean the ledger in the end and according to the
+    -- issue using the `Archive` choice for that purpose does not work over
+    -- the HTTP JSON API.
+    choice Delete: ()
+      controller player
+      do
+        pure ()
+
+-- A fresh game.
+mkUser player = User with player, state = emptyState
+  where emptyState : State
+        emptyState = State {xPlaysNext=True, board=replicate 9 None, winningPlayer=None}
+
+-- Next marker given state.
+marker : State -> Text
+marker (State True _ _)  = "X"
+marker (State False _ _) = "O"
+
+-- Make a move.
+move : Int -> Text -> Board -> Optional Board
+move i p board
+  | Some _ <- winner board  = None -- User over.
+  | Some _ <- board !! i = None -- Square already occupied.
+  | otherwise = Some $ take i board ++ [Some p] ++ drop (i + 1) board
+
+-- Check for a winner.
+winner : Board -> Optional Text
+winner cells = foldl f None winningStates
+  where
+    f : Optional Text -> [Int] -> Optional Text
+    f winner@(Some _) _ = winner
+    f acc [a, b, c]
+      | (Some x, Some y, Some z) <- (cells !! a, cells !! b, cells !! c)
+      , x == y && y == z
+      = Some x
+    f _ _ = None
+
+    winningStates : [[Int]]
+    winningStates =
+      [
+        [0, 1, 2], [3, 4, 5], [6, 7, 8]
+      , [0, 3, 6], [1, 4, 7], [2, 5, 8]
+      , [0, 4, 8]
+      , [6, 2, 2]
+      ]
