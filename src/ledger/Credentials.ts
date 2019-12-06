@@ -1,5 +1,3 @@
-import { encode } from 'jwt-simple';
-
 export const LEDGER_ID: string = 'default-ledgerid';
 
 export const APPLICATION_ID: string = 'tic-tac-toe';
@@ -7,12 +5,8 @@ export const APPLICATION_ID: string = 'tic-tac-toe';
 export const SECRET_KEY: string = 'secret';
 
 export function computeToken(party: string): string {
-  const payload = {
-    ledgerId: LEDGER_ID,
-    applicationId: APPLICATION_ID,
-    party,
-  };
-  return encode(payload, SECRET_KEY, 'HS256');
+  const token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJsZWRnZXJJZCI6ImRlZmF1bHQtbGVkZ2VyaWQiLCJhcHBsaWNhdGlvbklkIjoiZm9vYmFyIiwicGFydHkiOiJBbGljZSJ9.X19OPSV2YgAsui249oxQqUDDfNXnpxPAnra9qUU6m9s";
+  return token;
 }
 
 export type Credentials = {
