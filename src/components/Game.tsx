@@ -125,7 +125,7 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
 
   let status : string;
   if (winningPlayer) { //!= null) {
-      status = "'" + winningPlayer + "' wins the game! すごい!";
+      status = "'" + winningPlayer + "' wins the game!";
     }
     else {
       status = 'Next player : ' + (xPlaysNext ? 'X' : 'O');
@@ -144,6 +144,7 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
                 />
               </div>
               <div className="game-info">
+                <div>{status}</div>
                 <button
                    disabled={board.every ((cell) => !cell)}
                    onClick={onReset}
@@ -152,14 +153,15 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
             </div>
           </Grid.Column>
         </Grid.Row>
-        <Grid.Row>
-           <Grid.Column>
-            <div>{status}</div>
-           </Grid.Column>
-        </Grid.Row>
       </Grid>
     </Container>
   );
 }
+
+        // <Grid.Row>
+        //    <Grid.Column>
+        //     <div>{status}</div>
+        //    </Grid.Column>
+        // </Grid.Row>
 
 export default GameController;
