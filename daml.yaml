@@ -1,14 +1,12 @@
-sdk-version: 0.13.38
+sdk-version: 0.13.18
 name: tic-tac-toe
 version: 0.1.0
-source: daml
+source: daml/Game.daml
+scenario: Game:setup
 parties:
 - Alice
 - Bob
 - Charlie
-build-options:
-- --target=1.dev
 dependencies:
 - daml-prim
 - daml-stdlib
-- daml-trigger

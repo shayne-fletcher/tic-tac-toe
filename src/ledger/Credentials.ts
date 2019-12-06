@@ -1,8 +1,8 @@
 import { encode } from 'jwt-simple';
 
-export const LEDGER_ID: string = 'create-daml-app-sandbox';
+export const LEDGER_ID: string = 'default-ledgerid';
 
-export const APPLICATION_ID: string = 'create-daml-app';
+export const APPLICATION_ID: string = 'tic-tac-toe';
 
 export const SECRET_KEY: string = 'secret';
 
