@@ -145,7 +145,7 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
               </div>
               <div className="game-info">
                 <button
-                   disabled={board.every ((cell) => cell == null)}
+                   disabled={board.every ((cell) => !cell)}
                    onClick={onReset}
                 >Start over</button>
               </div>
