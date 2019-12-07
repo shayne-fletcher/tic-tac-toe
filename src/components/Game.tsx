@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Grid } from 'semantic-ui-react';
 
-import { Game, GameState } from '../daml/Game';
+import { Game, GameState, OptString } from '../daml/Game';
 import Ledger from '../ledger/Ledger';
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,48 +66,83 @@ const GameController : GameControllerFC = ({ledger}) => {
 // Cell
 
 type CellProps = {
-    value : (string | null)
+    value : OptString
   , onClick : () => Promise<boolean>
 }
 type CellFC = React.FC<CellProps>;
 
 const Cell : CellFC = ({value, onClick}) => {
-    return (
-        <button className = "cell" onClick ={onClick}>
-      {value}
-    </button>
-    );
+  const [hover, setHover] = React.useState<boolean>(false);
+
+  let style = {
+    normal:{
+    },
+    hover: {
+      background: 'red'
+    }
+  };
+
+  return (
+      <button
+         className = "cell"
+         onClick ={onClick}
+         onMouseEnter={()=>{ setHover(true);}}
+         onMouseLeave={()=>{ setHover(false);}}
+         style={{
+           ...style.normal,
+           ...(hover ? style.hover : null)}}
+      >
+    {value}
+  </button>
+  );
+}
+
+////////////////////////////////////////////////////////////////////////////////
+// GameInfo
+
+type GameInfoProps = {
+  status : string;
+  cells : OptString[];
+  onReset : () => Promise<boolean>
+}
+type GameInfoFC = React.FC<GameInfoProps>;
+
+const GameInfo : GameInfoFC = ({status, cells, onReset}) => {
+  return (
+       <div>
+         <div className="status">{status}</div>
+         <button
+            disabled={cells.every ((cell) => !cell)}
+            onClick={onReset}
+        >Start over</button>
+      </div>
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
 // Board
 
 type BoardProps = {
-  cells : (string | null )[];
+  cells : OptString[];
   onClick : (i : number) => Promise<boolean>;
 }
 type BoardFC = React.FC<BoardProps>;
 
 const Board : BoardFC = ({cells, onClick}) => {
-    return (
-      <div>
-        <div className="board-row">
-        <Cell value = {cells[0]} onClick={() => { return onClick(0); } } />
-        <Cell value = {cells[1]} onClick={() => { return onClick(1); } } />
-        <Cell value = {cells[2]} onClick={() => { return onClick(2); } } />
-        </div>
-        <div className="board-row">
-        <Cell value = {cells[3]} onClick={() => { return onClick(3); } } />
-        <Cell value = {cells[4]} onClick={() => { return onClick(4); } } />
-        <Cell value = {cells[5]} onClick={() => { return onClick(5); } } />
-        </div>
-        <div className="board-row">
-        <Cell value = {cells[6]} onClick={() => { return onClick(6); } } />
-        <Cell value = {cells[7]} onClick={() => { return onClick(7); } } />
-        <Cell value = {cells[8]} onClick={() => { return onClick(8); } } />
-        </div>
-      </div>
-    );
+  let row = function (n : number) {
+    let cell = function (i : number) {
+      return (<Cell value = {cells[i]} onClick={()=>{return onClick(i);}} />)
+    };
+    return Array(3).fill(0).map((x, i) => cell (i + n * 3));
+  };
+
+  return (
+    <div>
+      <div className="board-row">{row (0)}</div>
+      <div className="board-row">{row (1)}</div>
+      <div className="board-row">{row (2)}</div>
+    </div>
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -122,14 +157,10 @@ type GameViewFC = React.FC<GameViewProps>;
 
 const GameView : GameViewFC = ({game, onClick, onReset}) => {
   const {xPlaysNext, board, winningPlayer} : GameState = game.state;
-
-  let status : string;
-  if (winningPlayer) { //!= null) {
-      status = "'" + winningPlayer + "' wins the game!";
-    }
-    else {
-      status = 'Next player : ' + (xPlaysNext ? 'X' : 'O');
-    }
+  const status : string =
+    function (p : OptString, x : boolean) : string {
+      return p ? "'" + p + "' wins the game!" : "Next player : " + (x ? 'X' : 'O');
+    }(winningPlayer, xPlaysNext);
 
   return (
     <Container>
@@ -144,11 +175,11 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
                 />
               </div>
               <div className="game-info">
-                <div>{status}</div>
-                <button
-                   disabled={board.every ((cell) => !cell)}
-                   onClick={onReset}
-                >Start over</button>
+                <GameInfo
+                   status={status}
+                   cells={board}
+                   onReset={onReset}
+                />
               </div>
             </div>
           </Grid.Column>
@@ -157,11 +188,5 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
     </Container>
   );
 }
-
-        // <Grid.Row>
-        //    <Grid.Column>
-        //     <div>{status}</div>
-        //    </Grid.Column>
-        // </Grid.Row>
 
 export default GameController;
