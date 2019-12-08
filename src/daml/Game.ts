@@ -27,11 +27,17 @@ class Move {
   static toJSON (move : Move): unknown            { return move; }
 }
 
-export type OptString = (string | null)
+export class Solution {
+  tag : string="";
+  solution : number[] = new Array(3).fill(null); // 3 cell indicies
+}
+
+export type OptString = (string | null);
+export type OptSolution = (Solution| null)
 export class GameState {
   xPlaysNext : boolean = true;
   board : OptString[] = new Array(9).fill(null);
-  winningPlayer : OptString = null;
+  winningPlayer : OptSolution = null;
 }
 
 // Template 'Game'
