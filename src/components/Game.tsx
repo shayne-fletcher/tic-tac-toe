@@ -74,38 +74,39 @@ type CellFC = React.FC<CellProps>;
 
 const Cell : CellFC = ({active, value, onClick}) => {
   const [hover, setHover] = React.useState<boolean>(false);
-
-  let style = {
+  let onMouseEnter = ()=>{ setHover(true);};
+  let onMouseLeave = ()=>{ setHover(false);};
+  let style= {
     normal:{
     },
     hover: {
       background: 'red'
     }
   };
-
-  if (active) {
-    return  (
-      <button
-         className = "cell"
-         onClick ={onClick}
-         onMouseEnter={()=>{ setHover(true);}}
-         onMouseLeave={()=>{ setHover(false);}}
-         style={{
-           ...style.normal,
-           ...(hover ? style.hover : null)}}
-      >
-    {value}
-  </button>
-  ); }
-  else {
+  let pickStyle = function (active : boolean) {
     return (
-        <button
-          className = "cell"
-          onClick ={onClick}
-        >
-         {value}
-       </button>
-  ); }
+      active ? {
+           ...style.normal,
+           ...(hover ? style.hover : null)
+         }
+             : {
+           ...style.normal,
+           ...(false ? style.hover : null)
+         }
+    );
+  }
+
+  return  (
+    <button
+       className = "cell"
+       onClick ={onClick}
+       onMouseEnter={onMouseEnter}
+       onMouseLeave={onMouseLeave}
+       style={ pickStyle (active) }
+    >
+      {value}
+    </button>
+  );
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -173,7 +174,7 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
   const active : boolean = !winningPlayer;
   const status : string =
     function (p : OptString, x : boolean) : string {
-      return p ? "'" + p + "' wins the game!" : "Next player : " + (x ? 'X' : 'O');
+      return p ? p + " wins the game!" : "Next player : " + (x ? 'X' : 'O');
     }(winningPlayer, xPlaysNext);
 
   return (
