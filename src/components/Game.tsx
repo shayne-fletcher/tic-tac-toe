@@ -66,12 +66,13 @@ const GameController : GameControllerFC = ({ledger}) => {
 // Cell
 
 type CellProps = {
-    value : OptString
+    active : boolean
+  , value : OptString
   , onClick : () => Promise<boolean>
 }
 type CellFC = React.FC<CellProps>;
 
-const Cell : CellFC = ({value, onClick}) => {
+const Cell : CellFC = ({active, value, onClick}) => {
   const [hover, setHover] = React.useState<boolean>(false);
 
   let style = {
@@ -82,7 +83,8 @@ const Cell : CellFC = ({value, onClick}) => {
     }
   };
 
-  return (
+  if (active) {
+    return  (
       <button
          className = "cell"
          onClick ={onClick}
@@ -94,7 +96,16 @@ const Cell : CellFC = ({value, onClick}) => {
       >
     {value}
   </button>
-  );
+  ); }
+  else {
+    return (
+        <button
+          className = "cell"
+          onClick ={onClick}
+        >
+         {value}
+       </button>
+  ); }
 }
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -108,11 +119,12 @@ type GameInfoProps = {
 type GameInfoFC = React.FC<GameInfoProps>;
 
 const GameInfo : GameInfoFC = ({status, cells, onReset}) => {
+  let disabled : boolean = cells.every ((cell) => !cell);
   return (
        <div>
          <div className="status">{status}</div>
          <button
-            disabled={cells.every ((cell) => !cell)}
+            disabled={disabled}
             onClick={onReset}
         >Start over</button>
       </div>
@@ -123,15 +135,16 @@ const GameInfo : GameInfoFC = ({status, cells, onReset}) => {
 // Board
 
 type BoardProps = {
+  active : boolean;
   cells : OptString[];
   onClick : (i : number) => Promise<boolean>;
 }
 type BoardFC = React.FC<BoardProps>;
 
-const Board : BoardFC = ({cells, onClick}) => {
+const Board : BoardFC = ({active, cells, onClick}) => {
   let row = function (n : number) {
     let cell = function (i : number) {
-      return (<Cell value = {cells[i]} onClick={()=>{return onClick(i);}} />)
+      return (<Cell active={active} value = {cells[i]} onClick={()=>{return onClick(i);}} />)
     };
     return Array(3).fill(0).map((x, i) => cell (i + n * 3));
   };
@@ -157,6 +170,7 @@ type GameViewFC = React.FC<GameViewProps>;
 
 const GameView : GameViewFC = ({game, onClick, onReset}) => {
   const {xPlaysNext, board, winningPlayer} : GameState = game.state;
+  const active : boolean = !winningPlayer;
   const status : string =
     function (p : OptString, x : boolean) : string {
       return p ? "'" + p + "' wins the game!" : "Next player : " + (x ? 'X' : 'O');
@@ -169,7 +183,8 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
           <Grid.Column>
             <div className="game">
               <div className="game-board">
-                <Board
+                 <Board
+                   active={active}
                    cells={board}
                    onClick={onClick}
                 />
