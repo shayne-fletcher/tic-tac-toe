@@ -5,10 +5,14 @@ import DA.List -- for ( !! )
 
 type Cell = Optional Text
 type Board = [Cell]  -- 9 cells (3 x 3 grid).
+data Solution =
+  Solution { tag : Text
+           , solution : [Int]
+           } deriving (Eq, Show)
 data State =
   State { xPlaysNext : Bool
         , board : Board
-        , winningPlayer : Optional Text
+        , winningPlayer : Optional Solution
         } deriving (Eq, Show)
 
 template Game with
@@ -53,15 +57,15 @@ marker : Bool -> Text
 marker True  = "X"; marker False = "O"
 
 -- Check for a winner.
-winner : Board -> Optional Text
+winner : Board -> Optional Solution
 winner cells = foldl f None winningStates
   where
-    f : Optional Text -> [Int] -> Optional Text
+    f : Optional Solution -> [Int] -> Optional Solution
     f winner@(Some _) _ = winner
     f acc [a, b, c]
       | (Some x, Some y, Some z) <- (cells !! a, cells !! b, cells !! c)
       , x == y && y == z
-      = Some x
+      = Some Solution{tag = x, solution = [a, b, c]}
     f _ _ = None
 
     winningStates : [[Int]]

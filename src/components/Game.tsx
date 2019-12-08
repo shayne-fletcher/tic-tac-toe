@@ -1,7 +1,7 @@
 import React from 'react';
 import { Container, Grid } from 'semantic-ui-react';
 
-import { Game, GameState, OptString } from '../daml/Game';
+import { Game, GameState, OptString, OptSolution } from '../daml/Game';
 import Ledger from '../ledger/Ledger';
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -66,13 +66,15 @@ const GameController : GameControllerFC = ({ledger}) => {
 // Cell
 
 type CellProps = {
-    active : boolean
+    index : number
+  , active : boolean
   , value : OptString
   , onClick : () => Promise<boolean>
+  , winningPlayer : OptSolution
 }
 type CellFC = React.FC<CellProps>;
 
-const Cell : CellFC = ({active, value, onClick}) => {
+const Cell : CellFC = ({index, active, value, onClick, winningPlayer}) => {
   const [hover, setHover] = React.useState<boolean>(false);
   let onMouseEnter = ()=>{ setHover(true);};
   let onMouseLeave = ()=>{ setHover(false);};
@@ -81,18 +83,27 @@ const Cell : CellFC = ({active, value, onClick}) => {
     },
     hover: {
       background: 'red'
+    },
+    winning: {
+      background: 'gray'
     }
   };
-  let pickStyle = (active : boolean) =>
-    (
-      active ? {
-           ...style.normal,
-           ...(hover ? style.hover : null)
-         }
-             : {
-           ...style.normal,
-           ...(false ? style.hover : null)
-         }
+
+  let pickStyle = () => (
+      active
+        ? {
+          ...style.normal,
+          ...(hover ? style.hover : null)
+        }
+        : (winningPlayer && winningPlayer.solution.some((e, i, arr)=>e == index)
+           ? {
+             ...style.winning,
+             ...(false ? style.hover : null)
+           }
+           : {
+             ...style.normal,
+             ...(false ? style.hover : null)
+             })
     );
 
   return  (
@@ -101,7 +112,7 @@ const Cell : CellFC = ({active, value, onClick}) => {
        onClick ={onClick}
        onMouseEnter={onMouseEnter}
        onMouseLeave={onMouseLeave}
-       style={ pickStyle (active) }
+       style={ pickStyle() }
     >
       {value}
     </button>
@@ -138,13 +149,20 @@ type BoardProps = {
   active : boolean;
   cells : OptString[];
   onClick : (i : number) => Promise<boolean>;
+  winningPlayer : OptSolution;
 }
 type BoardFC = React.FC<BoardProps>;
 
-const Board : BoardFC = ({active, cells, onClick}) => {
+const Board : BoardFC = ({active, cells, onClick, winningPlayer}) => {
   let row = function (n : number) {
     let cell = function (i : number) {
-      return (<Cell active={active} value = {cells[i]} onClick={()=>{return onClick(i);}} />)
+      return (<Cell
+                index={i}
+                active={active}
+                value = {cells[i]}
+                onClick={()=>{return onClick(i);}}
+                winningPlayer={winningPlayer}
+              />)
     };
     return Array(3).fill(0).map((x, i) => cell (i + n * 3));
   };
@@ -172,10 +190,10 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
   const {xPlaysNext, board, winningPlayer} : GameState = game.state;
   const cells : OptString[] = board;
   const allCellsMarked : boolean = cells.every ((cell) => cell);
-  const active : boolean = !(winningPlayer || !allCellsMarked);
+  const active : boolean = !winningPlayer && !allCellsMarked;
   const status : string =
-    function (p : OptString, x : boolean) : string {
-      return p ? p + " wins the game!" :
+    function (p : OptSolution, x : boolean) : string {
+      return p ? p.tag + " wins the game!" :
         (allCellsMarked ? "It's a draw." : ("Next player : " + (x ? 'X' : 'O')));
     }(winningPlayer, xPlaysNext);
 
@@ -190,6 +208,7 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
                    active={active}
                    cells={cells}
                    onClick={onClick}
+                   winningPlayer={winningPlayer}
                 />
               </div>
               <div className="game-info">
