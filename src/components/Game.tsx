@@ -84,7 +84,7 @@ const Cell : CellFC = ({index, active, value, onClick, winningPlayer}) => {
     hover: {
       background: 'red'
     },
-    winning: {
+    highlight: {
       background: 'gray'
     }
   };
@@ -97,7 +97,7 @@ const Cell : CellFC = ({index, active, value, onClick, winningPlayer}) => {
         }
         : (winningPlayer && winningPlayer.solution.some((e, i, arr)=>e == index)
            ? {
-             ...style.winning,
+             ...style.highlight,
              ...(false ? style.hover : null)
            }
            : {
