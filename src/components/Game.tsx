@@ -95,6 +95,7 @@ const Cell : CellFC = ({index, active, value, onClick, winningPlayer}) => {
           ...style.normal,
           ...(hover ? style.hover : null)
         }
+// eslint-disable-next-line
         : (winningPlayer && winningPlayer.solution.some((e, i, arr)=>e == index)
            ? {
              ...style.highlight,
