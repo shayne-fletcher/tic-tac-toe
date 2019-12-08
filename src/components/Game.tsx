@@ -170,10 +170,13 @@ type GameViewFC = React.FC<GameViewProps>;
 
 const GameView : GameViewFC = ({game, onClick, onReset}) => {
   const {xPlaysNext, board, winningPlayer} : GameState = game.state;
-  const active : boolean = !winningPlayer;
+  const cells = board;
+  const allCellsMarked = cells.every ((cell) => cell);
+  const active : boolean = !winningPlayer && !allCellsMarked;
   const status : string =
     function (p : OptString, x : boolean) : string {
-      return p ? p + " wins the game!" : "Next player : " + (x ? 'X' : 'O');
+      return p ? p + " wins the game!" :
+        (allCellsMarked ? "It's a draw." : ("Next player : " + (x ? 'X' : 'O')));
     }(winningPlayer, xPlaysNext);
 
   return (
@@ -185,14 +188,14 @@ const GameView : GameViewFC = ({game, onClick, onReset}) => {
               <div className="game-board">
                  <Board
                    active={active}
-                   cells={board}
+                   cells={cells}
                    onClick={onClick}
                 />
               </div>
               <div className="game-info">
                 <GameInfo
                    status={status}
-                   cells={board}
+                   cells={cells}
                    onReset={onReset}
                 />
               </div>
