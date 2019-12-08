@@ -83,8 +83,8 @@ const Cell : CellFC = ({active, value, onClick}) => {
       background: 'red'
     }
   };
-  let pickStyle = function (active : boolean) {
-    return (
+  let pickStyle = (active : boolean) =>
+    (
       active ? {
            ...style.normal,
            ...(hover ? style.hover : null)
@@ -94,7 +94,6 @@ const Cell : CellFC = ({active, value, onClick}) => {
            ...(false ? style.hover : null)
          }
     );
-  }
 
   return  (
     <button
