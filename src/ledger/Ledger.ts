@@ -108,7 +108,12 @@ class Ledger {
    * Create a contract for a given template.
    */
   async create<T>(template: Template<T>, argument: T): Promise<Contract<T>> {
+    const meta = {
+      ledgerEffectiveTime : Date.now (),
+      maximumRecordTime : Date.now() + 60000
+    }
     const payload = {
+      meta:meta,
       templateId: template.templateId,
       argument: template.toJSON(argument),
     }
@@ -121,7 +126,12 @@ class Ledger {
    * Exercise a choice on a contract.
    */
   async exercise<T, C>(choice: Choice<T, C>, contractId: ContractId<T>, argument: C): Promise<unknown> {
+    const meta = {
+      ledgerEffectiveTime : Date.now (),
+      maximumRecordTime : Date.now() + 60000
+    }
     const payload = {
+      meta: meta,
       templateId: choice.template.templateId,
       contractId: contractId.toJSON(),
       choice: choice.choiceName,

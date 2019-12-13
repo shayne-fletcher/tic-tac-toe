@@ -1,4 +1,4 @@
-sdk-version: 0.13.18
+sdk-version: 0.13.37
 name: tic-tac-toe
 version: 0.1.0
 source: daml/Game.daml
