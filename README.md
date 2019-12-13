@@ -44,25 +44,35 @@ at the root of the repository.
 
 ### Running against a DAML sandbox ledger
 
-To start the application, first start a DAML ledger using
-```bash
-./daml-start.sh
-```
-After this, start the UI server via
-```bash
-yarn start
-```
+1. From the tic-tac-toe repository, start the ledger.
+   ```bash
+   daml sandbox --max-ttl-seconds=120 --wall-clock-time --ledgerid=default-ledgerid --port 9000
+   ```
+2. From the tic-tac-toe repository, upload the tic-tac-toe dar.
+   ```bash
+   daml ledger upload-dar --host localhost --port 9000
+   ```
+   (Optional) To verify the dar upload, attach a navigator instance to the ledger. From the tic-tac-toe repository, start a navigator instance
+   ```bash
+   daml navigator server localhost 9000 --port 4000
+   ```
+   then, open a navigator client by pointing your browser at  http://localhost:4000.
+3. From the tic-tac-toe repository directory connect a json-api to the ledger.
+   ```bash
+   daml json-api --ledger-host localhost --ledger-port 9000 --http-port 7575 --max-inbound-message-size 4194304 --package-reload-interval 5s --application-id HTTP-JSON-API-Gateway
+   ```
+4. From the tic-tac-toe repository, start the UI server.
+   ```bash
+   yarn start
+   ```
+
 This should open a browser window with a login screen. If it doesn't, you
 can manually point your browser to http://localhost:3000.
 
-### Running against a Hyperledger sawtooth ledger
+### Running against a [Hyperledger sawtooth](https://www.hyperledger.org/projects/sawtooth) ledger
 
-First switch to the `sawtooth` branch of this repository:
-```bash
-git checkout -t origin/sawtooth
-```
-
-Next build and install `daml-on-sawtooth` by following that project's
+First, build and install `daml-on-sawtooth` by following that
+project's
 [instructions](https://github.com/blockchaintp/daml-on-sawtooth).
 
 Then,
@@ -75,6 +85,11 @@ Then,
    ```bash
    daml ledger upload-dar --host localhost --port 9000
    ```
+   (Optional) To verify the dar upload, attach a navigator instance to the ledger. From the tic-tac-toe repository, start a navigator instance
+   ```bash
+   daml navigator server localhost 9000 --port 4000
+   ```
+   then, open a navigator client by pointing your browser at  http://localhost:4000.
 3. From the tic-tac-toe repository directory connect a json-api to the ledger.
    ```bash
    daml json-api --ledger-host localhost --ledger-port 9000 --http-port 7575 --max-inbound-message-size 4194304 --package-reload-interval 5s --application-id HTTP-JSON-API-Gateway`
@@ -83,6 +98,9 @@ Then,
    ```bash
    yarn start
    ```
+
+As in the sandbox case, this should open a browser window with a login screen. If it doesn't, you
+can manually point your browser to http://localhost:3000.
 
 ## A quick tour
 
